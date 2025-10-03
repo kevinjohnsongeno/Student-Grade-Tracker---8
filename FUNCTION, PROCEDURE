@@ -1,0 +1,39 @@
+DELIMITER //
+-- Function checks if the subject exists in 'subjectdetails'
+CREATE FUNCTION isSubject(testsubject_code VARCHAR(10))
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN 
+	DECLARE flag BOOLEAN DEFAULT FALSE;
+    DECLARE found_subject_code VARCHAR(10);
+    SELECT subject_code 
+    INTO found_subject_code
+		FROM subjectdetails
+        WHERE testsubject_code = subject_code
+		LIMIT 1;
+	IF found_subject_code IS NOT NULL THEN
+		SET flag = TRUE;
+	END IF;
+    RETURN flag;
+END//
+-- PROCEDURE to insert student mark
+CREATE PROCEDURE insertMarks(
+							IN	istudent_id INT, 
+							IN	isubject_code VARCHAR(10),
+							IN	iinternal INT,
+							IN ilaborproject INT
+                            )
+BEGIN 
+		DECLARE total INT;
+		IF isSubject(isubject_code) THEN
+			SET total = iinternal + ilaborproject;
+			INSERT INTO student_marks(student_id, subject_code, internal, laborproject,totalmarks) 
+				VALUES (istudent_id, isubject_code, iinternal, ilaborproject,total); 
+        ELSE
+			SELECT 'The subject does not exist in the subjectdetails table.' AS errormessg;
+		END IF;
+END//
+DELIMITER ;
+SELECT isSubject('PCCST102');
+CALL insertMarks(2, 'FAKE101', 15, 15);
+CALL insertMarks(1, 'GAMAT101', 20, 18);
